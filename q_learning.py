@@ -83,7 +83,7 @@ class QLearning(object):
     def episode(self):
         self.location = (0, 0)
         count = 0
-        while count < self.number_of_steps or self.world[self.location[0]][self.location[1]] != 100:
+        while count < self.number_of_steps and self.world[self.location[0]][self.location[1]] != 100:
             self.step()
             count += 1
 
@@ -101,7 +101,7 @@ class QLearning(object):
 
 if __name__ == '__main__':
     q = QLearning("./board.txt")
-    q.train(1, 1, 150, 1000)
+    q.train(learning_rate=0.9, discount_factor=0.9, number_of_steps=150, number_of_episodes=1000)
     # print(q.in_the_world(q.location))
     # print(q.transition('L'))
     # print(q.transition('R'))
