@@ -1,3 +1,5 @@
+import math
+
 from imshow_world import show_world
 from heapq import heappush, heappop
 
@@ -12,6 +14,7 @@ class AStar(object):
         self.closed = []
         self.current_point = start_point
         self.min_heap = []
+        self.parents = {}
         heappush(self.min_heap, (self.calculate_cost(self.current_point), self.current_point))
 
     @staticmethod
@@ -24,7 +27,7 @@ class AStar(object):
 
     @staticmethod
     def calculate_distance(first_node, second_node):
-        # return (first_node[0] - second_node[0]) ** 2 + (first_node[1] - second_node[1]) ** 2
+        # return math.sqrt(((first_node[0] - second_node[0]) ** 2) + ((first_node[1] - second_node[1]) ** 2))
         return abs(first_node[0] - second_node[0]) + abs(first_node[1] - second_node[1])
 
     def find_neighbors(self):
@@ -33,15 +36,19 @@ class AStar(object):
         up = self.current_point[0] - 1, self.current_point[1]
         down = self.current_point[0] + 1, self.current_point[1]
         neighbors = []
-        if min([0 <= x < self.nrows for x in left]):
+
+        if self.is_valid(left):
             neighbors.append(left)
-        if min([0 <= x < self.nrows for x in right]):
+        if self.is_valid(right):
             neighbors.append(right)
-        if min([0 <= x < self.nrows for x in up]):
+        if self.is_valid(up):
             neighbors.append(up)
-        if min([0 <= x < self.nrows for x in down]):
+        if self.is_valid(down):
             neighbors.append(down)
         return neighbors
+
+    def is_valid(self, neighbor):
+        return min([0 <= x < self.nrows for x in neighbor]) and self.world[neighbor[0]][neighbor[1]] >= 0
 
     def calculate_g(self, point):
         return AStar.calculate_distance(self.start_point, point)
@@ -53,7 +60,7 @@ class AStar(object):
         g = self.calculate_g(neighbor)
         h = self.calculate_h(neighbor)
         f = g + h
-        return int(str(f) + str(h) + str(g))
+        return f, h
 
     def calculate_min_f(self):
         return heappop(self.min_heap)
@@ -62,8 +69,8 @@ class AStar(object):
         self.closed.append(self.current_point)
         while self.min_heap:
             self.current_point = self.calculate_min_f()[1]
-            print(self.current_point)
-            print(self.calculate_cost(self.current_point))
+            # print(self.current_point)
+            # print(self.calculate_cost(self.current_point))
             if self.current_point == self.end_point:
                 break
 
@@ -72,9 +79,19 @@ class AStar(object):
                 if self.world[neighbor[0]][neighbor[1]] < 0 or (neighbor in self.closed):
                     continue
 
+                self.parents[neighbor] = self.current_point
                 self.closed.append(neighbor)
                 heappush(self.min_heap, (self.calculate_cost(neighbor), neighbor))
+        self.print_path()
 
+    def print_path(self):
+        parent = self.end_point
+        path = []
+        while parent in self.parents:
+            path.append(parent)
+            parent = self.parents[parent]
+        path.reverse()
+        print(path)
 
 
 if __name__ == '__main__':
