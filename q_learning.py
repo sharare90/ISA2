@@ -13,7 +13,10 @@ class QLearning(object):
         self.number_of_episodes = None
         self.learning_rate = None
         self.discount_factor = None
-        self.demo()
+
+    def best_step(self):
+        if self.world[self.location[0]][self.location[1]] != 100:
+            self.transition(action=self.best_action())
 
     @staticmethod
     def read_data(file_name):
