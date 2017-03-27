@@ -3,7 +3,7 @@ from random import randrange
 
 
 class QLearning(object):
-    def __init__(self, file_name):
+    def __init__(self, file_name, is_stochastic):
         self.world = QLearning.read_data(file_name)
         self.nrows = len(self.world)
         self.ncols = len(self.world[0])
@@ -13,6 +13,7 @@ class QLearning(object):
         self.number_of_episodes = None
         self.learning_rate = None
         self.discount_factor = None
+        self.is_stochastic = is_stochastic
 
     def best_step(self):
         if self.world[self.location[0]][self.location[1]] != 100:
@@ -48,11 +49,28 @@ class QLearning(object):
             return self.location[0] + 1, self.location[1]
 
     def transition(self, action):
+        if not self.is_stochastic:
+            return self.normal_transition(action)
+        else:
+            return self.stochastic_transition(action)
+
+    def normal_transition(self, action):
         new_location = self.get_new_location(action)
         new_location_reward = self.reward(new_location)
         if self.transition_is_ok(new_location):
             self.location = new_location
         return new_location_reward
+
+    def stochastic_transition(self, action):
+        random_generated_number = randrange(100 + 1) / 100.0
+        if random_generated_number <= 0.6:
+            return self.normal_transition(action)
+        elif 0.6 < random_generated_number <= 0.7:
+            return -1.0
+        else:
+            other_actions = self.available_actions().replace(action, "")
+            new_action = other_actions[randrange(3)]
+            return self.normal_transition(new_action)
 
     def transition_is_ok(self, location):
         if self.in_the_world(location) and self.world[location[0]][location[1]] != -1:
@@ -103,8 +121,8 @@ class QLearning(object):
 
 
 if __name__ == '__main__':
-    q = QLearning("./board.txt")
-    q.train(learning_rate=0.9, discount_factor=0.9, number_of_steps=150, number_of_episodes=1000)
+    q = QLearning("./board.txt", is_stochastic=True)
+    q.train(learning_rate=0.9, discount_factor=0.9, number_of_steps=150, number_of_episodes=10000)
     # print(q.in_the_world(q.location))
     # print(q.transition('L'))
     # print(q.transition('R'))
