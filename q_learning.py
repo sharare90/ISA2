@@ -4,6 +4,7 @@ from random import randrange
 
 class QLearning(object):
     def __init__(self, file_name, is_stochastic):
+        self.action_policy = None
         self.world = QLearning.read_data(file_name)
         self.nrows = len(self.world)
         self.ncols = len(self.world[0])
@@ -83,6 +84,14 @@ class QLearning(object):
 
     def get_action(self):
         # Return 0, 1, 2, 3 for L, R, U, D
+        if self.action_policy == 'epsilon-policy':
+            epsilon = 0.9
+            random_generated_number = randrange(100)
+            if random_generated_number > epsilon * 100:
+                action = self.best_action()
+                return self.available_actions().index(action)
+            else:
+                return randrange(4)
         return randrange(4)
 
     def step(self):
@@ -108,7 +117,8 @@ class QLearning(object):
             self.step()
             count += 1
 
-    def train(self, learning_rate, discount_factor, number_of_steps, number_of_episodes):
+    def train(self, learning_rate, discount_factor, number_of_steps, number_of_episodes, action_policy=None):
+        self.action_policy = action_policy
         self.number_of_steps = number_of_steps
         self.number_of_episodes = number_of_episodes
         self.learning_rate = learning_rate

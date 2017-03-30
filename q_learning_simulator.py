@@ -11,7 +11,8 @@ class QLearningSimulator(object):
             learning_rate=0.9,
             discount_factor=0.8,
             number_of_steps=150,
-            number_of_episodes=10000
+            number_of_episodes=10000,
+            action_policy='epsilon-policy'
         )
 
         self.minimum = self.find_min()
@@ -129,9 +130,9 @@ class QLearningSimulator(object):
 
     def calculate_heat_map(self, value):
         ratio = 2 * (value - self.minimum) / (self.maximum - self.minimum)
-        b = int(max(0, 255 * (1 - ratio)))
-        r = int(max(0, 255 * (ratio - 1)))
-        g = 255 - b - r
+        r = int(max(0, 255 * (1 - ratio)))
+        g = int(max(0, 255 * (ratio - 1)))
+        b = 255 - r - g
         return r, g, b
 
     def check_click(self, event):
@@ -169,7 +170,7 @@ class QLearningSimulator(object):
 
 if __name__ == '__main__':
     file_name = "./board.txt"
-    q_learning = QLearning("./board.txt", is_stochastic=True)
+    q_learning = QLearning("./board.txt", is_stochastic=False)
 
     QLearningSimulator(q_learning, delay_time=100)
 

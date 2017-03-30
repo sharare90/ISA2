@@ -5,10 +5,10 @@ from heapq import heappush, heappop
 
 
 class AStar(object):
-    def __init__(self, file_name, start_point, end_point):
+    def __init__(self, world, start_point, end_point):
         self.start_point = start_point
         self.end_point = end_point
-        self.world = AStar.read_data(file_name)
+        self.world = world
         self.nrows = len(self.world)
         self.ncols = len(self.world[0])
         self.closed = []
@@ -95,6 +95,7 @@ class AStar(object):
 
 
 if __name__ == '__main__':
-    q = AStar("./board.txt", (9, 0), (1, 8))
+    world = AStar.read_data("./board.txt")
+    q = AStar(world, (9, 0), (1, 8))
     q.a_star()
     show_world(q.world, *q.current_point)
