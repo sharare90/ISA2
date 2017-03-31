@@ -35,7 +35,7 @@ class AStarSimulator(object):
         self.world = [[-1 for i in range(self.ncols)] for j in range(self.nrows)]
 
         self.screen = pygame.display.set_mode(self.size)
-        self.delay_time = 1000
+        self.delay_time = 20
 
         pygame.init()
         self.start_simulation()
@@ -63,9 +63,11 @@ class AStarSimulator(object):
         return a_star.get_path()
 
     def check_right_click(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and not self.path:
             self.placing_wall = False
             self.path = self.solve_a_star()
+            if not self.path:
+                print('There is no path to goal.')
 
     def animate_motion(self):
         if self.path and not self.temporary_goal_point:
@@ -85,7 +87,7 @@ class AStarSimulator(object):
         self.playing = True
 
         while self.playing:
-            # pygame.time.delay(self.delay_time)
+            pygame.time.delay(self.delay_time)
             for event in pygame.event.get():
                 self.check_quit(event)
                 self.check_click(event)

@@ -15,6 +15,7 @@ class AStar(object):
         self.current_point = start_point
         self.min_heap = []
         self.parents = {}
+        self.g_scores = {self.current_point: 0}
         heappush(self.min_heap, (self.calculate_cost(self.current_point), self.current_point))
 
     @staticmethod
@@ -48,7 +49,10 @@ class AStar(object):
         return neighbors
 
     def is_valid(self, neighbor):
-        return min([0 <= x < self.nrows for x in neighbor]) and self.world[neighbor[0]][neighbor[1]] != 0
+        return \
+            0 <= neighbor[1] < self.nrows and \
+            0 <= neighbor[0] < self.ncols and \
+            self.world[neighbor[0]][neighbor[1]] != 0
 
     def calculate_g(self, point):
         return AStar.calculate_distance(self.start_point, point)
@@ -57,7 +61,7 @@ class AStar(object):
         return AStar.calculate_distance(point, self.end_point)
 
     def calculate_cost(self, neighbor):
-        g = self.calculate_g(neighbor)
+        g = self.g_scores[neighbor]
         h = self.calculate_h(neighbor)
         f = g + h
         return f, h
@@ -69,6 +73,7 @@ class AStar(object):
         self.closed.append(self.current_point)
         while self.min_heap:
             self.current_point = self.calculate_min_f()[1]
+            self.closed.append(self.current_point)
             if self.current_point == self.end_point:
                 break
 
@@ -77,8 +82,12 @@ class AStar(object):
                 if self.world[neighbor[0]][neighbor[1]] == 0 or (neighbor in self.closed):
                     continue
 
+                tentative_g_score = self.g_scores[self.current_point] + 1
+                if neighbor in self.g_scores and tentative_g_score >= self.g_scores[neighbor]:
+                    continue
+
+                self.g_scores[neighbor] = tentative_g_score
                 self.parents[neighbor] = self.current_point
-                self.closed.append(neighbor)
                 heappush(self.min_heap, (self.calculate_cost(neighbor), neighbor))
         # print(self.get_path())
 
