@@ -31,10 +31,8 @@ class QLearning(object):
     def in_the_world(self, location):
         return -1 < location[0] < self.nrows and -1 < location[1] < self.ncols
 
-    def reward(self, location):
-        if self.in_the_world(location):
-            return self.world[location[0]][location[1]]
-        return -100
+    def reward(self):
+        return self.world[self.location[0]][self.location[1]]
 
     def available_actions(self):
         return 'LRUD'
@@ -51,30 +49,28 @@ class QLearning(object):
 
     def transition(self, action):
         if not self.is_stochastic:
-            return self.normal_transition(action)
+            self.normal_transition(action)
         else:
-            return self.stochastic_transition(action)
+            self.stochastic_transition(action)
 
     def normal_transition(self, action):
         new_location = self.get_new_location(action)
-        new_location_reward = self.reward(new_location)
         if self.transition_is_ok(new_location):
             self.location = new_location
-        return new_location_reward
 
     def stochastic_transition(self, action):
         random_generated_number = randrange(100 + 1) / 100.0
         if random_generated_number <= 0.6:
-            return self.normal_transition(action)
+            self.normal_transition(action)
         elif 0.6 < random_generated_number <= 0.7:
-            return -1.0
+            pass
         else:
             other_actions = self.available_actions().replace(action, "")
             new_action = other_actions[randrange(3)]
-            return self.normal_transition(new_action)
+            self.normal_transition(new_action)
 
     def transition_is_ok(self, location):
-        if self.in_the_world(location) and self.world[location[0]][location[1]] != -1:
+        if self.in_the_world(location) and self.world[location[0]][location[1]] != 0:
             return True
         return False
 
@@ -99,7 +95,8 @@ class QLearning(object):
         action = self.get_action()
         # print('Moving {action_letter} ...'.format(action_letter=self.available_actions()[action]))
 
-        immediate_reward = self.transition(self.available_actions()[action])
+        self.transition(self.available_actions()[action])
+        immediate_reward = self.reward()
         # print('Reward: {reward}'.format(reward=immediate_reward))
 
         old_q_value = self.Q[previous_location[0]][previous_location[1]][action]

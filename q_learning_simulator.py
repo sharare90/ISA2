@@ -9,10 +9,10 @@ class QLearningSimulator(object):
         self.q_learning = q_learning
         self.q_learning.train(
             learning_rate=0.9,
-            discount_factor=0.8,
+            discount_factor=0.9,
             number_of_steps=150,
             number_of_episodes=10000,
-            action_policy='epsilon-policy'
+            # action_policy='epsilon-policy'
         )
 
         self.minimum = self.find_min()
@@ -34,14 +34,14 @@ class QLearningSimulator(object):
 
         self.bg_color = 0, 100, 0
         self.item_colors = {
-            -1: (0, 0, 0),
+            0: (0, 0, 0),
             100: (0, 0, 255),
-            0: (0, 255, 0)
+            -1: (0, 255, 0)
         }
         self.item_thickness = {
-            -1: 0,
+            0: 0,
             100: 0,
-            0: 2
+            -1: 2
         }
         self.screen = pygame.display.set_mode(self.size)
 
@@ -139,7 +139,7 @@ class QLearningSimulator(object):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             i = int(event.pos[1] / self.state_height)
             j = int(event.pos[0] / self.state_width)
-            if self.world[i][j] != -1:
+            if self.world[i][j] != 0:
                 self.q_learning.location = (i, j)
 
     def check_quit(self, event):
@@ -170,7 +170,7 @@ class QLearningSimulator(object):
 
 if __name__ == '__main__':
     file_name = "./board.txt"
-    q_learning = QLearning("./board.txt", is_stochastic=False)
+    q_learning = QLearning("./board.txt", is_stochastic=True)
 
     QLearningSimulator(q_learning, delay_time=100)
 

@@ -48,7 +48,7 @@ class AStar(object):
         return neighbors
 
     def is_valid(self, neighbor):
-        return min([0 <= x < self.nrows for x in neighbor]) and self.world[neighbor[0]][neighbor[1]] >= 0
+        return min([0 <= x < self.nrows for x in neighbor]) and self.world[neighbor[0]][neighbor[1]] != 0
 
     def calculate_g(self, point):
         return AStar.calculate_distance(self.start_point, point)
@@ -76,7 +76,7 @@ class AStar(object):
 
             neighbors = self.find_neighbors()
             for neighbor in neighbors:
-                if self.world[neighbor[0]][neighbor[1]] < 0 or (neighbor in self.closed):
+                if self.world[neighbor[0]][neighbor[1]] == 0 or (neighbor in self.closed):
                     continue
 
                 self.parents[neighbor] = self.current_point
