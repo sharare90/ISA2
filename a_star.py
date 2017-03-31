@@ -9,8 +9,8 @@ class AStar(object):
         self.start_point = start_point
         self.end_point = end_point
         self.world = world
-        self.nrows = len(self.world)
-        self.ncols = len(self.world[0])
+        self.nrows = len(self.world[0])
+        self.ncols = len(self.world)
         self.closed = []
         self.current_point = start_point
         self.min_heap = []
@@ -69,8 +69,6 @@ class AStar(object):
         self.closed.append(self.current_point)
         while self.min_heap:
             self.current_point = self.calculate_min_f()[1]
-            # print(self.current_point)
-            # print(self.calculate_cost(self.current_point))
             if self.current_point == self.end_point:
                 break
 
@@ -82,16 +80,16 @@ class AStar(object):
                 self.parents[neighbor] = self.current_point
                 self.closed.append(neighbor)
                 heappush(self.min_heap, (self.calculate_cost(neighbor), neighbor))
-        self.print_path()
+        # print(self.get_path())
 
-    def print_path(self):
+    def get_path(self):
         parent = self.end_point
         path = []
         while parent in self.parents:
             path.append(parent)
             parent = self.parents[parent]
         path.reverse()
-        print(path)
+        return path
 
 
 if __name__ == '__main__':
