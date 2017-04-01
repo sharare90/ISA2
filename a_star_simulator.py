@@ -1,7 +1,9 @@
 from copy import deepcopy
 
-from a_star import AStar
 import pygame
+
+from a_star import AStar
+
 
 
 def sign(x):
@@ -14,7 +16,8 @@ def sign(x):
 
 
 class AStarSimulator(object):
-    def __init__(self):
+    def __init__(self, start_frame=None):
+        self.start_frame = start_frame
         self.temporary_goal_point = None
         self.path = None
         self.simulation_step = 5
@@ -54,11 +57,12 @@ class AStarSimulator(object):
 
         pygame.init()
         self.font = pygame.font.SysFont("monospace", 15)
-        self.start_simulation()
 
     def check_quit(self, event):
         if event.type == pygame.QUIT:
             self.playing = False
+            self.start_frame.a_star_simulator = None
+            pygame.display.quit()
 
     def place_wall(self, event):
         i = int(event.pos[0] / self.cell_width)
@@ -189,10 +193,6 @@ class AStarSimulator(object):
 
         while self.playing:
             pygame.time.delay(self.delay_time)
-            for event in pygame.event.get():
-                self.check_quit(event)
-                self.check_click(event)
-                # self.check_right_click(event)
 
             self.screen.fill(self.bg_color)
             self.draw_menu()
@@ -200,6 +200,9 @@ class AStarSimulator(object):
             self.animate_motion()
 
             pygame.display.flip()
+            for event in pygame.event.get():
+                self.check_click(event)
+                self.check_quit(event)
 
     def draw_wall(self, i, j):
         rect = [self.cell_width * i, self.cell_height * j, self.cell_width, self.cell_height]
@@ -227,6 +230,3 @@ class AStarSimulator(object):
         self.draw_robot(self.robot_y, self.robot_x)
 
         pygame.display.flip()
-
-
-AStarSimulator()

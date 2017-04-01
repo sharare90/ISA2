@@ -1,12 +1,15 @@
 from tkinter import *
 from tkinter import filedialog
 
+from a_star_simulator import AStarSimulator
+
 
 BACKGROUND_COLOR = "#a1dbcd"
 
 
 class AlgorithmChooser(object):
     def __init__(self):
+        self.a_star_simulator = None
         self.background_color = "#a1dbcd"
         self.root = Tk()
         self.root.configure(pady=0)
@@ -53,7 +56,9 @@ class AlgorithmChooser(object):
         print("Q learning started with parameters")
 
     def start_a_star(self, event):
-        print("A star started with parameters")
+        if not self.a_star_simulator:
+            self.a_star_simulator = AStarSimulator(start_frame=self)
+            self.a_star_simulator.start_simulation()
 
     def set_q_learning_frame(self):
         q_learning_frame = Frame(self.root)
@@ -78,12 +83,6 @@ class AlgorithmChooser(object):
         a_star_title = Label(a_star_frame, text="A*", bg=BACKGROUND_COLOR, font=("Helvetica", 20))
         a_star_title.pack(pady=20)
 
-        fields = (
-            "Number of Iterations",
-            "Number of Episode Steps"
-        )
-
-        self.create_form(a_star_frame, fields)
         a_star_submit = Button(a_star_frame, text="Start")
         a_star_submit.bind('<Button-1>', self.start_a_star)
         a_star_submit.pack(pady=(40, 0))
