@@ -28,16 +28,31 @@ class AStarSimulator(object):
         self.cell_height = 10
         self.robot_x, self.robot_y = 1 * self.cell_width, 1 * self.cell_height
         self.goal_x, self.goal_y = 32, 55
+        self.previous_action_before_simulation = None
+        self.actions = {
+            0: "Place Wall",
+            1: "Choose Start Position",
+            2: "Choose End Position",
+            3: "Running!!!",
+            4: "There is no path to goal."
+        }
+        self.current_action = 0
 
         self.size = self.width, self.height = 640, 480
         self.nrows = int(self.height / self.cell_height)
         self.ncols = int(self.width / self.cell_width)
         self.world = [[-1 for i in range(self.ncols)] for j in range(self.nrows)]
 
-        self.screen = pygame.display.set_mode(self.size)
+        self.menu_width = 200
+        self.menu_bg = 255, 255, 255
+        self.menu_button_color = 255, 0, 0
+        self.menu_button_text_color = 0, 0, 255
+
+        self.screen = pygame.display.set_mode((self.width + self.menu_width, self.height))
         self.delay_time = 20
 
         pygame.init()
+        self.font = pygame.font.SysFont("monospace", 15)
         self.start_simulation()
 
     def check_quit(self, event):
@@ -47,11 +62,55 @@ class AStarSimulator(object):
     def place_wall(self, event):
         i = int(event.pos[0] / self.cell_width)
         j = int(event.pos[1] / self.cell_height)
-        self.world[j][i] = 0
+        if self.world[j][i] == -1:
+            if self.robot_x != j * self.cell_height or self.robot_y != i * self.cell_width :
+                if self.goal_x != j or self.goal_y != i:
+                    self.world[j][i] = 0
+
+    def place_start(self, event):
+        i = int(event.pos[0] / self.cell_width)
+        j = int(event.pos[1] / self.cell_height)
+        if self.world[j][i] == -1:
+            self.robot_y = i * self.cell_width
+            self.robot_x = j * self.cell_height
+
+    def place_end(self, event):
+        i = int(event.pos[0] / self.cell_width)
+        j = int(event.pos[1] / self.cell_height)
+        if self.world[j][i] == -1:
+            self.goal_y = i
+            self.goal_x = j
+
+    def check_menu_click(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and self.current_action != 3:
+            x = event.pos[0]
+            y = event.pos[1]
+
+            if self.width + 20 < x < self.width + 170:
+                if 60 < y < 80:
+                    self.current_action = 1
+                elif 100 < y < 120:
+                    self.current_action = 2
+                elif 140 < y < 160:
+                    self.current_action = 0
+                elif 180 < y < 200:
+                    self.previous_action_before_simulation = self.current_action
+                    self.current_action = 3
+                    self.path = self.solve_a_star()
+                    if not self.path:
+                        self.current_action = 4
 
     def check_click(self, event):
-        if self.placing_wall and event.type == pygame.MOUSEMOTION and event.buttons == (1, 0, 0):
-            self.place_wall(event)
+        if hasattr(event, 'pos'):
+            if event.pos[0] >= self.width:
+                self.check_menu_click(event)
+            else:
+                if self.current_action == 0 and event.type == pygame.MOUSEMOTION and event.buttons == (1, 0, 0):
+                    self.place_wall(event)
+                elif self.current_action == 1 and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.place_start(event)
+                elif self.current_action == 2 and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.place_end(event)
 
     def solve_a_star(self):
         world = deepcopy(self.world)
@@ -62,14 +121,10 @@ class AStarSimulator(object):
         a_star.a_star()
         return a_star.get_path()
 
-    def check_right_click(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and not self.path:
-            self.placing_wall = False
-            self.path = self.solve_a_star()
-            if not self.path:
-                print('There is no path to goal.')
-
     def animate_motion(self):
+        if not self.path and self.current_action == 3:
+            self.current_action = self.previous_action_before_simulation
+
         if self.path and not self.temporary_goal_point:
             point = self.path[0]
             del self.path[0]
@@ -83,6 +138,28 @@ class AStarSimulator(object):
             self.robot_x += delta_x * self.simulation_step
             self.robot_y += delta_y * self.simulation_step
 
+    def draw_button(self, y, text):
+        label = self.font.render(text, True, self.menu_button_text_color)
+        label_rect = label.get_rect()
+        label_rect.center = (self.width + 95, y + 10)
+        rect = (self.width + 20, y, 150, 20)
+        pygame.draw.rect(self.screen, self.menu_button_color, rect)
+        self.screen.blit(label, label_rect)
+
+    def draw_label(self, y, text):
+        label = self.font.render(text, True, self.menu_button_text_color)
+        label_rect = label.get_rect()
+        label_rect.center = (self.width + 95, y + 10)
+        self.screen.blit(label, label_rect)
+
+    def draw_menu(self):
+        pygame.draw.rect(self.screen, self.menu_bg, (self.width, 0, self.menu_width, self.height))
+        self.draw_label(20, self.actions[self.current_action])
+        self.draw_button(60, "Start Position")
+        self.draw_button(100, "End Position")
+        self.draw_button(140, "Wall")
+        self.draw_button(180, "Start Simulation")
+
     def start_simulation(self):
         self.playing = True
 
@@ -91,9 +168,10 @@ class AStarSimulator(object):
             for event in pygame.event.get():
                 self.check_quit(event)
                 self.check_click(event)
-                self.check_right_click(event)
+                # self.check_right_click(event)
 
             self.screen.fill(self.bg_color)
+            self.draw_menu()
             self.draw_world()
             self.animate_motion()
 

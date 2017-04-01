@@ -70,6 +70,9 @@ class AStar(object):
         return heappop(self.min_heap)
 
     def a_star(self):
+        if self.end_point == self.start_point:
+            return
+
         self.closed.append(self.current_point)
         while self.min_heap:
             self.current_point = self.calculate_min_f()[1]
@@ -92,6 +95,8 @@ class AStar(object):
         # print(self.get_path())
 
     def get_path(self):
+        if self.start_point == self.end_point:
+            return [self.end_point]
         parent = self.end_point
         path = []
         while parent in self.parents:
