@@ -37,7 +37,7 @@ class AStarSimulator(object):
             4: "There is no path to goal."
         }
         self.current_action = 0
-
+        self.hover = 0
         self.size = self.width, self.height = 640, 480
         self.nrows = int(self.height / self.cell_height)
         self.ncols = int(self.width / self.cell_width)
@@ -45,8 +45,9 @@ class AStarSimulator(object):
 
         self.menu_width = 200
         self.menu_bg = 255, 255, 255
-        self.menu_button_color = 255, 0, 0
-        self.menu_button_text_color = 0, 0, 255
+        self.menu_button_color = 65, 0, 0
+        self.menu_button_hover_color = 0, 0, 0
+        self.menu_button_text_color = 255, 255, 255
 
         self.screen = pygame.display.set_mode((self.width + self.menu_width, self.height))
         self.delay_time = 20
@@ -82,10 +83,24 @@ class AStarSimulator(object):
             self.goal_x = j
 
     def check_menu_click(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and self.current_action != 3:
-            x = event.pos[0]
-            y = event.pos[1]
+        x = event.pos[0]
+        y = event.pos[1]
+        if event.type == pygame.MOUSEMOTION:
+            x = self.width + 20
+            if 60 < y < 80:
+                self.hover = 1
+            elif 100 < y < 120:
+                self.hover = 2
+            elif 140 < y < 160:
+                self.hover = 3
+            elif 180 < y < 200:
+                self.hover = 4
+            elif 220 < y < 240:
+                self.hover = 5
+            else:
+                self.hover = 0
 
+        if event.type == pygame.MOUSEBUTTONDOWN and self.current_action != 3:
             if self.width + 20 < x < self.width + 170:
                 if 60 < y < 80:
                     self.current_action = 1
@@ -99,6 +114,8 @@ class AStarSimulator(object):
                     self.path = self.solve_a_star()
                     if not self.path:
                         self.current_action = 4
+                elif 220 < y < 240:
+                    self.world = [[-1 for i in range(self.ncols)] for j in range(self.nrows)]
 
     def check_click(self, event):
         if hasattr(event, 'pos'):
@@ -139,15 +156,21 @@ class AStarSimulator(object):
             self.robot_y += delta_y * self.simulation_step
 
     def draw_button(self, y, text):
+        button_id = int((y - 60) / 40 + 1)
+        if button_id == self.hover:
+            color = self.menu_button_hover_color
+        else:
+            color = self.menu_button_color
+
         label = self.font.render(text, True, self.menu_button_text_color)
         label_rect = label.get_rect()
         label_rect.center = (self.width + 95, y + 10)
         rect = (self.width + 20, y, 150, 20)
-        pygame.draw.rect(self.screen, self.menu_button_color, rect)
+        pygame.draw.rect(self.screen, color, rect)
         self.screen.blit(label, label_rect)
 
     def draw_label(self, y, text):
-        label = self.font.render(text, True, self.menu_button_text_color)
+        label = self.font.render(text, True, self.menu_button_color)
         label_rect = label.get_rect()
         label_rect.center = (self.width + 95, y + 10)
         self.screen.blit(label, label_rect)
@@ -159,6 +182,7 @@ class AStarSimulator(object):
         self.draw_button(100, "End Position")
         self.draw_button(140, "Wall")
         self.draw_button(180, "Start Simulation")
+        self.draw_button(220, "Remove all walls")
 
     def start_simulation(self):
         self.playing = True
