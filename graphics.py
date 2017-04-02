@@ -68,6 +68,7 @@ class AlgorithmChooser(object):
             policy = self.P.get()
             environment = self.E.get()
             show_q_table = self.QT.get()
+            simulate_training = self.ST.get()
             file_address = self.file_address
 
             okay = True
@@ -97,13 +98,17 @@ class AlgorithmChooser(object):
             if not show_q_table:
                 messagebox.showerror("Error", "Please enter a valid option for Q Table")
                 okay = False
+            if not simulate_training:
+                messagebox.showerror("Error", "Please enter a valid option for Simulate Training")
+                okay = False
 
             if okay:
                 is_stochastic = environment == "Stochastic"
+                should_simulate_trianing = simulate_training == "Show"
+                should_show_q_table = show_q_table == "Show"
                 q_learning = QLearning(file_address, is_stochastic=is_stochastic)
                 policy_table = {
                     'Random': 'random',
-                    'Greedy': 'greedy',
                     'Epsilon': 'epsilon-policy',
                 }
                 policy = policy_table[policy]
@@ -112,13 +117,17 @@ class AlgorithmChooser(object):
                     delay_time=100,
                     root_frame=self,
                     action_policy=policy,
-                    show_q=show_q_table,
+                    show_q=should_show_q_table,
                     learning_rate=learning_rate,
                     discount_factor=discount_factor,
                     number_of_episodes=number_of_iterations,
                     number_of_steps=number_of_episode_steps,
+                    train_simulation=should_simulate_trianing,
                 )
-                self.q_learning_simulator.start_simulation(start_position=(9, 0))
+                if not self.q_learning_simulator.quited:
+                    self.q_learning_simulator.start_simulation(start_position=(0, 0))
+                else:
+                    self.q_learning_simulator = None
 
     def start_a_star(self, event):
         if not self.a_star_simulator:
@@ -140,9 +149,10 @@ class AlgorithmChooser(object):
         }
 
         combo_box_fields = {
-            'Policy': ['Random', 'Greedy', 'Epsilon'],
+            'Policy': ['Random', 'Epsilon'],
             'Environment': ['Static', 'Stochastic'],
-            'Q Table': ['Show', 'Not Show']
+            'Q Table': ['Show', 'Not Show'],
+            'Simulate Training': ['Show', 'Not Show'],
         }
 
         self.create_form(q_learning_frame, fields)

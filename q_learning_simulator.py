@@ -4,19 +4,13 @@ import pygame
 
 class QLearningSimulator(object):
     def __init__(self, q_learning, delay_time, root_frame=None, action_policy=None, show_q=True, learning_rate=0.9,
-                 discount_factor=0.9, number_of_steps=150, number_of_episodes=1000):
+                 discount_factor=0.9, number_of_steps=150, number_of_episodes=1000, train_simulation=True):
         pygame.init()
         self.root_frame = root_frame
         self.playing = False
         self.show_q = show_q
         self.q_learning = q_learning
-        self.q_learning.train(
-            learning_rate=learning_rate,
-            discount_factor=discount_factor,
-            number_of_steps=number_of_steps,
-            number_of_episodes=number_of_episodes,
-            action_policy=action_policy
-        )
+        self.is_simulating_training = False
 
         self.minimum = self.find_min()
         self.maximum = self.find_max()
@@ -58,7 +52,59 @@ class QLearningSimulator(object):
 
         self.font_size = 10
         self.font = pygame.font.SysFont("Arial", self.font_size)
+        self.quited = False
+
+        if train_simulation:
+            self.simulate_train(
+                learning_rate=learning_rate,
+                discount_factor=discount_factor,
+                number_of_steps=number_of_steps,
+                number_of_episodes=number_of_episodes,
+                action_policy=action_policy
+            )
+        else:
+            self.q_learning.train(
+                learning_rate=learning_rate,
+                discount_factor=discount_factor,
+                number_of_steps=number_of_steps,
+                number_of_episodes=number_of_episodes,
+                action_policy=action_policy
+            )
+
         # self.start_simulation((9, 0))
+
+    def simulate_train(self, learning_rate, discount_factor, number_of_steps, number_of_episodes, action_policy):
+        self.is_simulating_training = True
+        self.playing = True
+
+        self.q_learning.action_policy = action_policy
+        self.q_learning.number_of_steps = number_of_steps
+        self.q_learning.number_of_episodes = number_of_episodes
+        self.q_learning.learning_rate = learning_rate
+        self.q_learning.discount_factor = discount_factor
+
+        for i in range(self.q_learning.number_of_episodes):
+            from random import randrange
+            random_number = randrange(len(self.q_learning.not_wall_cells))
+            self.q_learning.location = self.q_learning.not_wall_cells[random_number]
+            count = 0
+            while self.playing and count < self.q_learning.number_of_steps and \
+                    self.q_learning.world[self.q_learning.location[0]][self.q_learning.location[1]] != 100:
+
+                pygame.time.delay(1)
+                self.screen.fill(self.bg_color)
+                self.draw_world()
+                if self.show_q:
+                    self.draw_q()
+                self.draw_robot(*self.q_learning.location)
+                pygame.display.flip()
+
+                self.q_learning.step()
+                count += 1
+                for event in pygame.event.get():
+                    self.check_quit(event)
+
+        self.is_simulating_training = False
 
     def start_simulation(self, start_position):
         self.playing = True
@@ -104,7 +150,7 @@ class QLearningSimulator(object):
                     ellipse_color = self.calculate_heat_map(self.q_learning.Q[i][j][k])
                     pygame.draw.ellipse(self.screen, ellipse_color, [x, y, self.q_ellipse_width, self.q_ellipse_height])
 
-                    text = "{:0.0f}".format(self.q_learning.Q[i][j][k])
+                    text = "{:0.2f}".format(self.q_learning.Q[i][j][k])
                     label = self.font.render(text, 1, (255, 255, 255))
                     self.screen.blit(
                         label,
@@ -133,10 +179,15 @@ class QLearningSimulator(object):
         return max_value
 
     def calculate_heat_map(self, value):
-        ratio = 2 * (value - self.minimum) / (self.maximum - self.minimum)
-        r = int(max(0, 255 * (1 - ratio)))
-        g = int(max(0, 255 * (ratio - 1)))
-        b = 255 - r - g
+        self.maximum = self.find_max()
+        self.minimum = self.find_min()
+        if self.maximum == self.minimum:
+            r, g, b = 0, 255, 0
+        else:
+            ratio = 2 * (value - self.minimum) / (self.maximum - self.minimum)
+            r = int(max(0, 255 * (1 - ratio)))
+            g = int(max(0, 255 * (ratio - 1)))
+            b = 255 - r - g
         return r, g, b
 
     def check_click(self, event):
@@ -148,6 +199,7 @@ class QLearningSimulator(object):
 
     def check_quit(self, event):
         if event.type == pygame.QUIT:
+            self.quited = True
             self.playing = False
             self.root_frame.q_learning_simulator = None
             pygame.display.quit()

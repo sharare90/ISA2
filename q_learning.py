@@ -15,6 +15,15 @@ class QLearning(object):
         self.learning_rate = None
         self.discount_factor = None
         self.is_stochastic = is_stochastic
+        self.not_wall_cells = []
+        self.find_not_wall_cells()
+
+    def find_not_wall_cells(self):
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self.world[i][j] != 0:
+                    self.not_wall_cells.append((i, j))
+        print(self.not_wall_cells)
 
     def best_step(self):
         if self.world[self.location[0]][self.location[1]] != 100:
@@ -76,21 +85,27 @@ class QLearning(object):
 
     def best_action(self):
         actions_q = self.Q[self.location[0]][self.location[1]]
-        return self.available_actions()[actions_q.index(max(actions_q))]
+        maximum = max(actions_q)
+        best_actions = []
+        for action in range(4):
+            if actions_q[action] == maximum:
+                best_actions.append(action)
+
+        chosen_action = randrange(len(best_actions))
+        return self.available_actions()[best_actions[chosen_action]]
 
     def get_action(self):
         # Return 0, 1, 2, 3 for L, R, U, D
         if self.action_policy == 'epsilon-policy':
-            epsilon = 0.9
+            epsilon = 0.6
             random_generated_number = randrange(100)
             if random_generated_number > epsilon * 100:
                 action = self.best_action()
                 return self.available_actions().index(action)
             else:
                 return randrange(4)
-        elif self.action_policy == 'greedy':
-            return self.available_actions().index(self.best_action())
-        return randrange(4)
+        else:
+            return randrange(4)
 
     def step(self):
         previous_location = self.location
@@ -110,7 +125,8 @@ class QLearning(object):
         )
 
     def episode(self):
-        self.location = (0, 0)
+        random_number = randrange(len(self.not_wall_cells))
+        self.location = self.not_wall_cells[random_number]
         count = 0
         while count < self.number_of_steps and self.world[self.location[0]][self.location[1]] != 100:
             self.step()
