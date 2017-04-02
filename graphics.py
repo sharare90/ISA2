@@ -29,7 +29,7 @@ class AlgorithmChooser(object):
 
     def choose_file(self):
         self.file_address = filedialog.askopenfilename(
-            initialdir="./",
+            initialdir="./boards/",
             title="Select file",
             filetypes=(("text files", "*.txt"), ("all files", "*.*"))
         )
@@ -61,10 +61,10 @@ class AlgorithmChooser(object):
 
     def start_q_learning(self, event):
         if not self.q_learning_simulator:
-            discount_factor = self.DF.get()
-            learning_rate = self.LR.get()
-            number_of_episode_steps = self.NoES.get()
-            number_of_iterations = self.NoI.get()
+            discount_factor = float(self.DF.get())
+            learning_rate = float(self.LR.get())
+            number_of_episode_steps = int(self.NoES.get())
+            number_of_iterations = int(self.NoI.get())
             policy = self.P.get()
             environment = self.E.get()
             show_q_table = self.QT.get()
@@ -75,29 +75,28 @@ class AlgorithmChooser(object):
             if not file_address:
                 messagebox.showerror("Error", "Please enter a valid file address")
                 okay = False
-            else:
-                if not discount_factor:
-                    messagebox.showerror("Error", "Please enter a valid discount factor")
-                    okay = False
-                if not learning_rate:
-                    messagebox.showerror("Error", "Please enter a valid learning rate")
-                    okay = False
-                if not number_of_episode_steps:
-                    messagebox.showerror("Error", "Please enter a valid number for episode steps")
-                    okay = False
-                if not number_of_iterations:
-                    messagebox.showerror("Error", "Please enter a valid number for iterations")
-                    okay = False
-                if not policy:
-                    messagebox.showerror("Error", "Please enter a valid option for policy")
-                    okay = False
-                if not environment:
-                    messagebox.showerror("Error", "Please enter a valid option for environment")
-                    okay = False
+            if not discount_factor:
+                messagebox.showerror("Error", "Please enter a valid discount factor")
+                okay = False
+            if not learning_rate:
+                messagebox.showerror("Error", "Please enter a valid learning rate")
+                okay = False
+            if not number_of_episode_steps:
+                messagebox.showerror("Error", "Please enter a valid number for episode steps")
+                okay = False
+            if not number_of_iterations:
+                messagebox.showerror("Error", "Please enter a valid number for iterations")
+                okay = False
+            if not policy:
+                messagebox.showerror("Error", "Please enter a valid option for policy")
+                okay = False
+            if not environment:
+                messagebox.showerror("Error", "Please enter a valid option for environment")
+                okay = False
 
-                if not show_q_table:
-                    messagebox.showerror("Error", "Please enter a valid option for Q Table")
-                    okay = False
+            if not show_q_table:
+                messagebox.showerror("Error", "Please enter a valid option for Q Table")
+                okay = False
 
             if okay:
                 is_stochastic = environment == "Stochastic"
@@ -112,7 +111,12 @@ class AlgorithmChooser(object):
                     q_learning,
                     delay_time=100,
                     root_frame=self,
-                    action_policy=policy
+                    action_policy=policy,
+                    show_q=show_q_table,
+                    learning_rate=learning_rate,
+                    discount_factor=discount_factor,
+                    number_of_episodes=number_of_iterations,
+                    number_of_steps=number_of_episode_steps,
                 )
                 self.q_learning_simulator.start_simulation(start_position=(9, 0))
 

@@ -3,17 +3,18 @@ import pygame
 
 
 class QLearningSimulator(object):
-    def __init__(self, q_learning, delay_time, root_frame=None, action_policy=None):
+    def __init__(self, q_learning, delay_time, root_frame=None, action_policy=None, show_q=True, learning_rate=0.9,
+                 discount_factor=0.9, number_of_steps=150, number_of_episodes=1000):
         pygame.init()
         self.root_frame = root_frame
         self.playing = False
-        self.show_q = True
+        self.show_q = show_q
         self.q_learning = q_learning
         self.q_learning.train(
-            learning_rate=0.9,
-            discount_factor=0.9,
-            number_of_steps=150,
-            number_of_episodes=10000,
+            learning_rate=learning_rate,
+            discount_factor=discount_factor,
+            number_of_steps=number_of_steps,
+            number_of_episodes=number_of_episodes,
             action_policy=action_policy
         )
 
