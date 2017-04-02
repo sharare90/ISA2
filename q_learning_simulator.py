@@ -3,7 +3,9 @@ import pygame
 
 
 class QLearningSimulator(object):
-    def __init__(self, q_learning, delay_time):
+    def __init__(self, q_learning, delay_time, root_frame=None, action_policy=None):
+        pygame.init()
+        self.root_frame = root_frame
         self.playing = False
         self.show_q = True
         self.q_learning = q_learning
@@ -12,7 +14,7 @@ class QLearningSimulator(object):
             discount_factor=0.9,
             number_of_steps=150,
             number_of_episodes=10000,
-            # action_policy='epsilon-policy'
+            action_policy=action_policy
         )
 
         self.minimum = self.find_min()
@@ -22,7 +24,9 @@ class QLearningSimulator(object):
         print(self.maximum)
 
         self.world = q_learning.world
-        self.size = self.width, self.height = 1024, 768
+
+        infoObject = pygame.display.Info()
+        self.size = self.width, self.height = infoObject.current_w - 100, infoObject.current_h - 100
 
         self.state_width = self.width / len(self.world[0])
         self.state_height = self.height / len(self.world)
@@ -50,11 +54,10 @@ class QLearningSimulator(object):
         robot_height = int(self.height / len(self.world))
         self.robot = pygame.transform.scale(robot_image, (robot_width, robot_height))
         self.robot_rect = self.robot.get_rect()
-        pygame.init()
 
         self.font_size = 10
         self.font = pygame.font.SysFont("Arial", self.font_size)
-        self.start_simulation((9, 0))
+        # self.start_simulation((9, 0))
 
     def start_simulation(self, start_position):
         self.playing = True
@@ -62,9 +65,6 @@ class QLearningSimulator(object):
 
         while self.playing:
             pygame.time.delay(self.delay_time)
-            for event in pygame.event.get():
-                self.check_quit(event)
-                self.check_click(event)
 
             self.screen.fill(self.bg_color)
             self.draw_world()
@@ -73,6 +73,9 @@ class QLearningSimulator(object):
             self.draw_robot(*self.q_learning.location)
             pygame.display.flip()
             self.q_learning.best_step()
+            for event in pygame.event.get():
+                self.check_click(event)
+                self.check_quit(event)
 
     def draw_q(self):
         actions = self.q_learning.available_actions()
@@ -145,10 +148,12 @@ class QLearningSimulator(object):
     def check_quit(self, event):
         if event.type == pygame.QUIT:
             self.playing = False
+            self.root_frame.q_learning_simulator = None
+            pygame.display.quit()
 
     def draw_robot(self, i, j):
         top_left = (self.state_width * j, self.state_height * i)
-        self.robot_rect = [*top_left, self.state_width, self.state_height]
+        self.robot_rect = [top_left[0], top_left[1], self.state_width, self.state_height]
         self.screen.blit(self.robot, self.robot_rect)
 
     def draw_world(self):
@@ -163,7 +168,7 @@ class QLearningSimulator(object):
         pygame.draw.rect(
             self.screen,
             color,
-            (*top_left, self.state_width, self.state_height),
+            (top_left[0], top_left[1], self.state_width, self.state_height),
             thickness
         )
 

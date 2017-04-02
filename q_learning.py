@@ -3,8 +3,8 @@ from random import randrange
 
 
 class QLearning(object):
-    def __init__(self, file_name, is_stochastic):
-        self.action_policy = None
+    def __init__(self, file_name, is_stochastic, policy=None):
+        self.action_policy = policy
         self.world = QLearning.read_data(file_name)
         self.nrows = len(self.world)
         self.ncols = len(self.world[0])
@@ -88,6 +88,8 @@ class QLearning(object):
                 return self.available_actions().index(action)
             else:
                 return randrange(4)
+        elif self.action_policy == 'greedy':
+            return self.available_actions().index(self.best_action())
         return randrange(4)
 
     def step(self):
