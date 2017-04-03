@@ -91,7 +91,6 @@ class QLearningSimulator(object):
             while self.playing and count < self.q_learning.number_of_steps and \
                     self.q_learning.world[self.q_learning.location[0]][self.q_learning.location[1]] != 100:
 
-                pygame.time.delay(1)
                 self.screen.fill(self.bg_color)
                 self.draw_world()
                 if self.show_q:
@@ -103,6 +102,8 @@ class QLearningSimulator(object):
                 count += 1
                 for event in pygame.event.get():
                     self.check_quit(event)
+            if not self.quited:
+                pygame.time.delay(1000)
 
         self.is_simulating_training = False
 
