@@ -1,6 +1,6 @@
 import math
 
-from imshow_world import show_world
+from imshow_world import show_world, show_a_star
 from heapq import heappush, heappop
 
 
@@ -107,7 +107,8 @@ class AStar(object):
 
 
 if __name__ == '__main__':
-    world = AStar.read_data("./board.txt")
-    q = AStar(world, (9, 0), (1, 8))
+    world = AStar.read_data("./boards/board4.txt")
+    q = AStar(world, (0, 0), (1, 8))
     q.a_star()
     show_world(q.world, *q.current_point)
+    show_a_star(q, *q.current_point)
